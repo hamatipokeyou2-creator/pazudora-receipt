@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パズドラ レシートテンプレジェネレーター</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f6f8; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { font-size: 1.8em; text-align: center; color: #2c3e50; margin-bottom: 20px; }
+        .section { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
+        /* クイックアクセス */
+        .quick-access { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; }
+        .quick-btn { background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 10px; padding: 10px; min-width: 80px; text-align: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+        .quick-btn:hover { border-color: #4CAF50; background: #e8f5e9; }
+        .quick-icon { width: 50px; height: 50px; object-fit: contain; margin-bottom: 5px; border-radius: 8px; }
+        .quick-name { font-size: 12px; font-weight: bold; }
+        
+        /* フォーム系 */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: #444; }
+        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
+        
+        .radio-group { display: flex; gap: 15px; flex-wrap: wrap; }
+        .radio-label { display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: normal; }
+        
+        /* プレビュー周り */
+        .preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .preview-header label { margin-bottom: 0; }
+        .copy-area { display: flex; align-items: center; gap: 10px; }
+        .copy-msg { color: #4CAF50; font-weight: bold; font-size: 14px; min-width: 100px; text-align: right; }
+        .copy-btn { background: #4CAF50; color: white; border: none; padding: 8px 16px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+        .copy-btn:hover { background: #43a047; }
+        
+        textarea { width: 100%; height: 450px; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-family: "Courier New", Consolas, monospace; font-size: 15px; line-height: 1.5; resize: vertical; box-sizing: border-box; background: #fafafa; }
+        
+        footer { text-align: center; margin-top: 30px; font-size: 0.9em; color: #777; }
+        footer a { color: #1da1f2; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>レシートジェネレーター</h1>
+
+    <div class="section">
+        <label>よく使うダンジョン</label>
+        <div class="quick-access" id="quickAccessContainer">
+            <!-- JSで自動生成 -->
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="form-group">
+            <label for="dungeonInput">ダンジョン検索</label>
+            <input type="text" id="dungeonInput" list="dungeonList" placeholder="ダンジョン名を入力または選択">
+            <datalist id="dungeonList">
+                <!-- JSで自動生成 -->
+            </datalist>
+        </div>
+
+        <div class="form-group">
+            <label>表示スタイル</label>
+            <div class="radio-group">
+                <label class="radio-label">
+                    <input type="radio" name="displayStyle" value="full" checked> アイコン＋名前
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="displayStyle" value="icon_only"> アイコンのみ
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="displayStyle" value="name_only"> 名前のみ
+                </label>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>改行設定</label>
+            <div class="radio-group">
+                <label class="radio-label">
+                    <input type="radio" name="lineSpacing" value="double" checked> 2行改行
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="lineSpacing" value="single"> 1行改行
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="preview-header">
+            <label for="preview">プレビュー & 編集</label>
+            <div class="copy-area">
+                <span class="copy-msg" id="copyMsg"></span>
+                <button class="copy-btn" onclick="copyText()">テキストをコピー</button>
+            </div>
+        </div>
+        <textarea id="preview" placeholder="ダンジョンを選択するとここにレシートのテンプレートが表示されます。直接編集も可能です。"></textarea>
+    </div>
+
+    <footer>
+        Created by Hamachi (<a href="https://twitter.com/gairu_poke" target="_blank">@gairu_poke</a>)
+    </footer>
+
+    <!-- データファイルの読み込み -->
+    <script src="js/data.js"></script>
+
+    <script>
+        const iconMap = {
+            "火": "🟥", "水": "🟦", "木": "🟩", "光": "🟨", "闇": "🟪", "無": "⬜"
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (typeof dungeons === 'undefined') {
+                document.getElementById('preview').value = "エラー: js/data.js が読み込めませんでした。\nファイル構造とファイル名を確認してください。";
+                return;
+            }
+
+            const datalist = document.getElementById("dungeonList");
+            const quickContainer = document.getElementById("quickAccessContainer");
+
+            dungeons.forEach(d => {
+                // 検索リストの作成
+                const option = document.createElement("option");
+                option.value = d.name;
+                let searchText = d.kana;
+                if (d.challenge) searchText += ` / ${d.challenge}`;
+                option.textContent = searchText;
+                datalist.appendChild(option);
+
+                // クイックアクセスボタンの作成
+                if (d.quick) {
+                    const btn = document.createElement("div");
+                    btn.className = "quick-btn";
+                    
+                    const fallbackImg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50'><rect width='50' height='50' fill='%23e9ecef'/><text x='50%' y='50%' font-size='10' font-family='sans-serif' text-anchor='middle' fill='%236c757d' dy='.3em'>No Img</text></svg>";
+                    
+                    btn.innerHTML = `
+                        <img src="images/${d.id}.png" alt="${d.name}" class="quick-icon" onerror="this.onerror=null; this.src='${fallbackImg}';">
+                        <div class="quick-name">${d.name}</div>
+                    `;
+                    btn.onclick = () => {
+                        document.getElementById("dungeonInput").value = d.name;
+                        generateReceipt();
+                    };
+                    quickContainer.appendChild(btn);
+                }
+            });
+
+            // 変更を検知してプレビューを更新
+            document.getElementById("dungeonInput").addEventListener("input", generateReceipt);
+            document.querySelectorAll('input[name="displayStyle"], input[name="lineSpacing"]').forEach(radio => {
+                radio.addEventListener("change", generateReceipt);
+            });
+        });
+
+        function getEnemyText(enemyStr, attrs, style) {
+            if (!enemyStr) return "";
+
+            const enemyNames = enemyStr.split(" / ");
+            const icons = attrs.map(a => iconMap[a] || "");
+            
+            if (style === "icon_only") {
+                return icons.length > 0 ? icons.join(" / ") : "";
+            } else if (style === "name_only") {
+                return enemyStr;
+            } else {
+                if (icons.length === 0) return enemyStr;
+                return enemyNames.map((name, i) => {
+                    const icon = icons[i] || "";
+                    return icon + name;
+                }).join(" / ");
+            }
+        }
+
+        function generateReceipt() {
+            const dungeonName = document.getElementById("dungeonInput").value;
+            const style = document.querySelector('input[name="displayStyle"]:checked').value;
+            const lineSpacing = document.querySelector('input[name="lineSpacing"]:checked').value;
+            const textarea = document.getElementById("preview");
+            
+            const dungeon = dungeons.find(d => 
+                d.name === dungeonName || 
+                d.kana === dungeonName || 
+                (d.challenge && d.challenge === dungeonName)
+            );
+            
+            if (!dungeon) return;
+
+            let text = "【全体メモ】\n\n\n--------------------\n";
+            
+            // 選択された改行設定に応じて改行文字を決定
+            // double: 空行2つ (改行3回), single: 空行1つ (改行2回)
+            const newline = lineSpacing === "double" ? "\n\n\n" : "\n\n";
+            
+            dungeon.floors.forEach(f => {
+                let floorText = f.floor + "F　";
+                let enemiesText = getEnemyText(f.enemy, f.attribute, style);
+                
+                if (dungeon.invade && dungeon.invade.floors.includes(f.floor)) {
+                    const invadeName = "(乱入)" + dungeon.invade.name;
+                    const invadeText = getEnemyText(invadeName, [dungeon.invade.attribute], style);
+                    if (enemiesText) {
+                        enemiesText += " / " + invadeText;
+                    } else {
+                        enemiesText = invadeText;
+                    }
+                }
+                
+                // 最後の行の余分な改行を防ぐ処理は入れず、そのまま追加
+                text += floorText + enemiesText + newline;
+            });
+            
+            textarea.value = text;
+        }
+
+        function copyText() {
+            const textarea = document.getElementById("preview");
+            if (!textarea.value) return;
+
+            textarea.select();
+            document.execCommand("copy");
+            
+            const msg = document.getElementById("copyMsg");
+            msg.textContent = "コピーしました！";
+            setTimeout(() => {
+                msg.textContent = "";
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
