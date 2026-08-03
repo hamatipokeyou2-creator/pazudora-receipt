@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>パズドラ レシートテンプレジェネレーター</title>
+    <title>パズドラ レシートジェネレーター</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f6f8; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
         h1 { font-size: 1.8em; text-align: center; color: #2c3e50; margin-bottom: 20px; }
@@ -24,15 +24,25 @@
         .radio-group { display: flex; gap: 15px; flex-wrap: wrap; }
         .radio-label { display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: normal; }
         
+        /* カスタムドロップダウン (スマホ対応) */
+        .search-container { position: relative; }
+        .dropdown-list { position: absolute; width: 100%; max-height: 250px; overflow-y: auto; background: #fff; border: 1px solid #ccc; border-top: none; border-radius: 0 0 6px 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none; z-index: 10; }
+        .dropdown-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 15px; }
+        .dropdown-item:last-child { border-bottom: none; }
+        .dropdown-item:hover, .dropdown-item:active { background: #f0f8ff; }
+
         /* プレビュー周り */
         .preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .preview-header label { margin-bottom: 0; }
+        .preview-header label { margin-bottom: 0; font-size: 1.2em; }
         .copy-area { display: flex; align-items: center; gap: 10px; }
         .copy-msg { color: #4CAF50; font-weight: bold; font-size: 14px; min-width: 100px; text-align: right; }
-        .copy-btn { background: #4CAF50; color: white; border: none; padding: 8px 16px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+        .copy-btn { background: #4CAF50; color: white; border: none; padding: 10px 18px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .copy-btn:hover { background: #43a047; }
         
-        textarea { width: 100%; height: 450px; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-family: "Courier New", Consolas, monospace; font-size: 15px; line-height: 1.5; resize: vertical; box-sizing: border-box; background: #fafafa; }
+        .warning-text { color: #d32f2f; font-size: 0.9em; margin-top: 0; margin-bottom: 10px; font-weight: bold; line-height: 1.4; }
+        
+        textarea { width: 100%; height: 450px; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-family: "Courier New", Consolas, monospace; font-size: 15px; line-height: 1.5; resize: vertical; box-sizing: border-box; background: #eef2f5; color: #555; }
+        textarea:focus { outline: none; }
         
         footer { text-align: center; margin-top: 30px; font-size: 0.9em; color: #777; }
         footer a { color: #1da1f2; text-decoration: none; font-weight: bold; }
@@ -50,12 +60,12 @@
     </div>
 
     <div class="section">
-        <div class="form-group">
-            <label for="dungeonInput">ダンジョン検索</label>
-            <input type="text" id="dungeonInput" list="dungeonList" placeholder="ダンジョン名を入力または選択">
-            <datalist id="dungeonList">
+        <div class="form-group search-container">
+            <label for="dungeonSearch">ダンジョン検索 (ひらがな・称号対応)</label>
+            <input type="text" id="dungeonSearch" placeholder="タップしてダンジョンを選択・入力" autocomplete="off">
+            <div id="dropdownList" class="dropdown-list">
                 <!-- JSで自動生成 -->
-            </datalist>
+            </div>
         </div>
 
         <div class="form-group">
@@ -72,29 +82,18 @@
                 </label>
             </div>
         </div>
-        
-        <div class="form-group">
-            <label>改行設定</label>
-            <div class="radio-group">
-                <label class="radio-label">
-                    <input type="radio" name="lineSpacing" value="double" checked> 2行改行
-                </label>
-                <label class="radio-label">
-                    <input type="radio" name="lineSpacing" value="single"> 1行改行
-                </label>
-            </div>
-        </div>
     </div>
 
     <div class="section">
         <div class="preview-header">
-            <label for="preview">プレビュー & 編集</label>
+            <label for="preview">プレビュー</label>
             <div class="copy-area">
                 <span class="copy-msg" id="copyMsg"></span>
                 <button class="copy-btn" onclick="copyText()">テキストをコピー</button>
             </div>
         </div>
-        <textarea id="preview" placeholder="ダンジョンを選択するとここにレシートのテンプレートが表示されます。直接編集も可能です。"></textarea>
+        <p class="warning-text">※検索や設定を変えるとテキストがリセットされます。<br>立ち回りの書き込みは、コピー後にPDCやメモアプリ等で行ってください。</p>
+        <textarea id="preview" readonly placeholder="ダンジョンを選択するとここにレシートのテンプレートが表示されます。"></textarea>
     </div>
 
     <footer>
@@ -115,19 +114,12 @@
                 return;
             }
 
-            const datalist = document.getElementById("dungeonList");
+            const searchInput = document.getElementById("dungeonSearch");
+            const dropdownList = document.getElementById("dropdownList");
             const quickContainer = document.getElementById("quickAccessContainer");
 
+            // クイックアクセスボタンの生成
             dungeons.forEach(d => {
-                // 検索リストの作成
-                const option = document.createElement("option");
-                option.value = d.name;
-                let searchText = d.kana;
-                if (d.challenge) searchText += ` / ${d.challenge}`;
-                option.textContent = searchText;
-                datalist.appendChild(option);
-
-                // クイックアクセスボタンの作成
                 if (d.quick) {
                     const btn = document.createElement("div");
                     btn.className = "quick-btn";
@@ -139,16 +131,70 @@
                         <div class="quick-name">${d.name}</div>
                     `;
                     btn.onclick = () => {
-                        document.getElementById("dungeonInput").value = d.name;
+                        searchInput.value = d.name;
                         generateReceipt();
+                        window.scrollTo({ top: document.getElementById('preview').offsetTop - 50, behavior: 'smooth' });
                     };
                     quickContainer.appendChild(btn);
                 }
             });
 
-            // 変更を検知してプレビューを更新
-            document.getElementById("dungeonInput").addEventListener("input", generateReceipt);
-            document.querySelectorAll('input[name="displayStyle"], input[name="lineSpacing"]').forEach(radio => {
+            // ドロップダウンリストの描画関数
+            function renderDropdown(filterText = "") {
+                dropdownList.innerHTML = "";
+                const lowerFilter = filterText.toLowerCase();
+                
+                const filtered = dungeons.filter(d => 
+                    d.name.toLowerCase().includes(lowerFilter) || 
+                    d.kana.includes(lowerFilter) || 
+                    (d.challenge && d.challenge.includes(lowerFilter))
+                );
+
+                if (filtered.length === 0) {
+                    const div = document.createElement("div");
+                    div.className = "dropdown-item";
+                    div.textContent = "該当するダンジョンがありません";
+                    div.style.color = "#999";
+                    dropdownList.appendChild(div);
+                } else {
+                    filtered.forEach(d => {
+                        const div = document.createElement("div");
+                        div.className = "dropdown-item";
+                        let subText = d.kana;
+                        if (d.challenge) subText += ` / ${d.challenge}`;
+                        div.innerHTML = `<strong>${d.name}</strong> <span style="font-size:0.85em; color:#777;">(${subText})</span>`;
+                        
+                        div.onclick = () => {
+                            searchInput.value = d.name;
+                            dropdownList.style.display = "none";
+                            generateReceipt();
+                        };
+                        dropdownList.appendChild(div);
+                    });
+                }
+            }
+
+            // 検索ボックスのイベント
+            searchInput.addEventListener("focus", () => {
+                renderDropdown(searchInput.value);
+                dropdownList.style.display = "block";
+            });
+
+            searchInput.addEventListener("input", (e) => {
+                renderDropdown(e.target.value);
+                dropdownList.style.display = "block";
+                generateReceipt();
+            });
+
+            // 外側をクリックしたらドロップダウンを閉じる
+            document.addEventListener("click", (e) => {
+                if (e.target !== searchInput && e.target !== dropdownList && !dropdownList.contains(e.target)) {
+                    dropdownList.style.display = "none";
+                }
+            });
+
+            // ラジオボタンの変更を検知
+            document.querySelectorAll('input[name="displayStyle"]').forEach(radio => {
                 radio.addEventListener("change", generateReceipt);
             });
         });
@@ -173,9 +219,8 @@
         }
 
         function generateReceipt() {
-            const dungeonName = document.getElementById("dungeonInput").value;
+            const dungeonName = document.getElementById("dungeonSearch").value;
             const style = document.querySelector('input[name="displayStyle"]:checked').value;
-            const lineSpacing = document.querySelector('input[name="lineSpacing"]:checked').value;
             const textarea = document.getElementById("preview");
             
             const dungeon = dungeons.find(d => 
@@ -184,13 +229,13 @@
                 (d.challenge && d.challenge === dungeonName)
             );
             
-            if (!dungeon) return;
+            if (!dungeon) {
+                // 完全一致しない場合は何もしない（入力途中のため）
+                return;
+            }
 
             let text = "【全体メモ】\n\n\n--------------------\n";
-            
-            // 選択された改行設定に応じて改行文字を決定
-            // double: 空行2つ (改行3回), single: 空行1つ (改行2回)
-            const newline = lineSpacing === "double" ? "\n\n\n" : "\n\n";
+            const newline = "\n\n\n"; // 常に2行分の空行を確保
             
             dungeon.floors.forEach(f => {
                 let floorText = f.floor + "F　";
@@ -206,7 +251,6 @@
                     }
                 }
                 
-                // 最後の行の余分な改行を防ぐ処理は入れず、そのまま追加
                 text += floorText + enemiesText + newline;
             });
             
