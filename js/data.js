@@ -1,4 +1,120 @@
 const dungeons = [
+
+  {
+    "id": "hanyou",
+    "name": "汎用（15F）",
+    "kana": "はんようてんぷれーと",
+    "challenge": "",
+    "quick": true,
+    "floors": [
+      {
+        "floor": 1,
+        "attribute": [
+          "5色"
+        ],
+        "enemy": ""
+      },
+      {
+        "floor": 2,
+        "attribute": [
+          "5色"
+        ],
+        "enemy": ""
+      },
+      {
+        "floor": 3,
+        "attribute": [
+          "5色"
+        ],
+        "enemy": ""
+      },
+      {
+        "floor": 4,
+        "attribute": [
+          "5色"
+        ],
+        "enemy": ""
+      },
+      {
+        "floor": 5,
+        "attribute": [
+          "5色"
+        ],
+        "enemy": ""
+      },
+      {
+        "floor": 6,
+        "attribute": [
+          "5色"
+        ],
+        "enemy": ""
+      },
+      {
+        "floor": 7,
+        "attribute": [
+          "5色"
+        ],
+        "enemy": ""
+      },
+      {
+        "floor": 8,
+        "attribute": [
+          "5色"
+        ],
+        "enemy": ""
+      },
+      {
+        "floor": 9,
+        "attribute": [
+          "5色"
+        ],
+        "enemy": ""
+      },
+      {
+        "floor": 10,
+        "attribute": [
+          "5色"
+        ],
+        "enemy": ""
+      },
+      {
+        "floor": 11,
+        "attribute": [
+          "5色"
+        ],
+        "enemy": ""
+      },
+      {
+        "floor": 12,
+        "attribute": [
+          "5色"
+        ],
+        "enemy": ""
+      },
+      {
+        "floor": 13,
+        "attribute": [
+          "5色"
+        ],
+        "enemy": ""
+      },
+      {
+        "floor": 14,
+        "attribute": [
+          "5色"
+        ],
+        "enemy": ""
+      },
+      {
+        "floor": 15,
+        "attribute": [
+          "5色"
+        ],
+        "enemy": ""
+      }
+    ]
+  },
+
   {
     "id": "taiju",
     "name": "大樹の霊王",
@@ -124,7 +240,7 @@ const dungeons = [
   "name": "紅蓮の機王",
   "kana": "ぐれんのきおう",
   "challenge": "紅蓮チャレンジ",
-  "quick": true,
+  "quick": false,
   "invade": {
     "name": "ドゥバル",
     "attribute": "火",

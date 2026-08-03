@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>パズドラ レシートジェネレーター</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f6f8; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
@@ -27,7 +27,7 @@
         /* カスタムドロップダウン (スマホ対応) */
         .search-container { position: relative; }
         .dropdown-list { position: absolute; width: 100%; max-height: 250px; overflow-y: auto; background: #fff; border: 1px solid #ccc; border-top: none; border-radius: 0 0 6px 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none; z-index: 10; }
-        .dropdown-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 15px; }
+        .dropdown-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 16px; }
         .dropdown-item:last-child { border-bottom: none; }
         .dropdown-item:hover, .dropdown-item:active { background: #f0f8ff; }
 
@@ -41,7 +41,8 @@
         
         .warning-text { color: #d32f2f; font-size: 0.9em; margin-top: 0; margin-bottom: 10px; font-weight: bold; line-height: 1.4; }
         
-        textarea { width: 100%; height: 450px; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-family: "Courier New", Consolas, monospace; font-size: 15px; line-height: 1.5; resize: vertical; box-sizing: border-box; background: #eef2f5; color: #555; }
+        /* テキストエリアのフォントサイズを16pxに変更し自動ズームを防止 */
+        textarea { width: 100%; height: 450px; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-family: "Courier New", Consolas, monospace; font-size: 16px; line-height: 1.5; resize: vertical; box-sizing: border-box; background: #eef2f5; color: #555; }
         textarea:focus { outline: none; }
         
         footer { text-align: center; margin-top: 30px; font-size: 0.9em; color: #777; }
@@ -105,7 +106,8 @@
 
     <script>
         const iconMap = {
-            "火": "🟥", "水": "🟦", "木": "🟩", "光": "🟨", "闇": "🟪", "無": "⬜"
+            "火": "🟥", "水": "🟦", "木": "🟩", "光": "🟨", "闇": "🟪", "無": "⬜",
+            "5色": "🟥🟦🟩🟨🟪" // 5色属性
         };
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -200,17 +202,20 @@
         });
 
         function getEnemyText(enemyStr, attrs, style) {
-            if (!enemyStr) return "";
-
-            const enemyNames = enemyStr.split(" / ");
             const icons = attrs.map(a => iconMap[a] || "");
             
             if (style === "icon_only") {
                 return icons.length > 0 ? icons.join(" / ") : "";
             } else if (style === "name_only") {
-                return enemyStr;
+                return enemyStr || "";
             } else {
-                if (icons.length === 0) return enemyStr;
+                // アイコン＋名前スタイル
+                if (icons.length === 0) return enemyStr || "";
+                
+                // 敵の名前が空っぽ（汎用テンプレート等）の場合でもアイコンだけは表示する
+                if (!enemyStr) return icons.join(" / ");
+                
+                const enemyNames = enemyStr.split(" / ");
                 return enemyNames.map((name, i) => {
                     const icon = icons[i] || "";
                     return icon + name;
@@ -230,12 +235,11 @@
             );
             
             if (!dungeon) {
-                // 完全一致しない場合は何もしない（入力途中のため）
                 return;
             }
 
             let text = "【全体メモ】\n\n\n--------------------\n";
-            const newline = "\n\n\n"; // 常に2行分の空行を確保
+            const newline = "\n\n\n"; 
             
             dungeon.floors.forEach(f => {
                 let floorText = f.floor + "F　";
@@ -244,6 +248,8 @@
                 if (dungeon.invade && dungeon.invade.floors.includes(f.floor)) {
                     const invadeName = "(乱入)" + dungeon.invade.name;
                     const invadeText = getEnemyText(invadeName, [dungeon.invade.attribute], style);
+                    
+                    // enemiesTextが空文字の場合（汎用テンプレの「名前のみ」など）の処理
                     if (enemiesText) {
                         enemiesText += " / " + invadeText;
                     } else {
