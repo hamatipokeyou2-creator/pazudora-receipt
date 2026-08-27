@@ -116,6 +116,129 @@ const dungeons = [
   },
 
   {
+  "id": "tenkyu",
+  "name": "天穹の神王",
+  "kana": "てんきゅうのしんおう",
+  "challenge": "天穹チャレンジ",
+  "quick": true,
+  "invade": {
+    "name": "レモック",
+    "attribute": "光",
+    "floors": [
+      6,
+      8
+    ]
+  },
+  "floors": [
+    {
+      "floor": 1,
+      "attribute": [],
+      "enemy": "伴神龍"
+    },
+    {
+      "floor": 2,
+      "attribute": [
+        "光",
+        "闇"
+      ],
+      "enemy": "アリエル / ルミエル"
+    },
+    {
+      "floor": 3,
+      "attribute": [
+        "闇"
+      ],
+      "enemy": "ルシファー"
+    },
+    {
+      "floor": 4,
+      "attribute": [
+        "水"
+      ],
+      "enemy": "ヌト"
+    },
+    {
+      "floor": 5,
+      "attribute": [
+        "光"
+      ],
+      "enemy": "エンジェル　発狂"
+    },
+    {
+      "floor": 6,
+      "attribute": [],
+      "enemy": "伴神龍"
+    },
+    {
+      "floor": 7,
+      "attribute": [
+        "光"
+      ],
+      "enemy": "ダブプラリット"
+    },
+    {
+      "floor": 8,
+      "attribute": [
+        "火"
+      ],
+      "enemy": "マッハ"
+    },
+    {
+      "floor": 9,
+      "attribute": [
+        "闇",
+        "光",
+        "水"
+      ],
+      "enemy": "ウラノス / アストレア / スクルド"
+    },
+    {
+      "floor": 10,
+      "attribute": [
+        "水"
+      ],
+      "enemy": "ハイレン"
+    },
+    {
+      "floor": 11,
+      "attribute": [
+        "光"
+      ],
+      "enemy": "メタトロン"
+    },
+    {
+      "floor": 12,
+      "attribute": [
+        "木",
+        "火"
+      ],
+      "enemy": "ヴェルダンディ / ウルド"
+    },
+    {
+      "floor": 13,
+      "attribute": [
+        "光"
+      ],
+      "enemy": "ブレイブXゴッド"
+    },
+    {
+      "floor": 14,
+      "attribute": [
+        "光"
+      ],
+      "enemy": "アレクセン"
+    },
+    {
+      "floor": 15,
+      "attribute": [
+        "光"
+      ],
+      "enemy": "【ボス】アレクセン"
+    }
+  ]
+},
+
+  {
     "id": "taiju",
     "name": "大樹の霊王",
     "kana": "たいじゅのれいおう",
