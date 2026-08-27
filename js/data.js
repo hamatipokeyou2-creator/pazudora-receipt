@@ -187,10 +187,9 @@ const dungeons = [
       "floor": 9,
       "attribute": [
         "闇",
-        "光",
-        "水"
+        "光"
       ],
-      "enemy": "ウラノス / アストレア / スクルド"
+      "enemy": "ウラノス / アストレア"
     },
     {
       "floor": 10,
@@ -210,9 +209,10 @@ const dungeons = [
       "floor": 12,
       "attribute": [
         "木",
-        "火"
+        "火",
+        "水"
       ],
-      "enemy": "ヴェルダンディ / ウルド"
+      "enemy": "ヴェルダンディ / ウルド / スクルド"
     },
     {
       "floor": 13,
