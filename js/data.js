@@ -162,7 +162,7 @@ const dungeons = [
       "attribute": [
         "光"
       ],
-      "enemy": "エンジェル　発狂"
+      "enemy": "エンジェル"
     },
     {
       "floor": 6,
